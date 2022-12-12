@@ -161,4 +161,4 @@ for (node in nodes_present){
   write_tsv(x = df,file = paste(path,output_folder,"/",acl,"-",node,".tsv",sep = ""))
 }
 
-cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,"/",output_folder,"\n\n",sep = "")) 
+cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,output_folder,"\n\n",sep = "")) 
