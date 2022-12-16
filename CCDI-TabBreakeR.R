@@ -114,16 +114,29 @@ NA_bank=c("NA","na","N/A","n/a")
 #Establish the list
 workbook_list=list()
 
+#read in readme file to establish the version
+df_readme=suppressMessages(read.xlsx(xlsxFile = file_path,sheet = "README and INSTRUCTIONS"))
+github_col=grep(pattern = "github", x = df_readme)
+github_rows=grep(pattern = "github", x = df_readme[,github_col])
+github_vers=basename(df_readme[github_rows,github_col])
+github_curr_ver=github_vers[length(github_vers)]
+
 #create a list of all node pages with data
 for (node in dict_nodes){
   #read the sheet
   df=readWorkbook(xlsxFile = file_path,sheet = node, na.strings = NA_bank)
+  
+  df$type=node
+  
   #create an emptier version that removes the type and makes everything a character
   df_empty_test=df%>%
     select(-type)%>%
     mutate(across(everything(), as.character))
   #remove empty rows and columns
   df_empty_test=remove_empty(df_empty_test,c("rows","cols"))
+  
+  #Capture the version of the template in the data frames
+  df$template_version=github_curr_ver
   
   #if there are at least one row in the resulting data frame, add it
   if (dim(df_empty_test)[1]>0){
