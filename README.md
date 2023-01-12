@@ -1,4 +1,4 @@
-# ChildhoodCancerDataInitiative-TabBreakeR
+# ChildrensCancerDataInitiative-TabBreakeR
 This takes a CCDI Metadata template file as input and creates an output TSV file for each of the Metadata tabs.
 
 This R Script takes a validated data file that is formatted to the [submission template for CCDI](https://github.com/CBIIT/ccdi-model/tree/main/metadata-manifest) as input.
@@ -34,5 +34,5 @@ The data file is being validated at this time.
 
 Process Complete.
 
-The output file can be found here: ChildhoodCancerDataInitiative-TabBreakeR/test_files/a_with_acl_CCDI_Submission_Template_v1.0.1_TabBreak20221212
+The output file can be found here: ChildrensCancerDataInitiative-TabBreakeR/test_files/a_with_acl_CCDI_Submission_Template_v1.0.1_TabBreak20221212
 ```
