@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-#Childrens Cancer Data Initiative - Tab BreakeR v1.0.0
+#Childhood Cancer Data Initiative - Tab BreakeR v1.0.0
 
 
 ##################
