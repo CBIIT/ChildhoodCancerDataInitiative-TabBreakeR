@@ -70,7 +70,7 @@ if (is.null(opt$file)){
 file_path=file_path_as_absolute(opt$file)
 
 #A start message for the user that the validation is underway.
-cat("The data file is being validated at this time.\n")
+cat("The data file is being broken down to single tsv submissions per tab.\n")
 
 
 ###############
@@ -159,7 +159,7 @@ nodes_present=names(workbook_list)
 ################
 
 #create new name for internal files
-acl=workbook_list["study_admin"][[1]]["acl"][[1]][1]
+acl=workbook_list["study"][[1]]["acl"][[1]][1]
 if (!is.na(acl)){
   acl=gsub(pattern = "\\[\\'",replacement = "",x = acl)
   acl=gsub(pattern = "\\'\\]",replacement = "",x = acl)
