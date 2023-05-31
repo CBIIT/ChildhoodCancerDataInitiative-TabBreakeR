@@ -171,7 +171,20 @@ if (!is.na(acl)){
 #for each tab, write out a file to the output directory
 for (node in nodes_present){
   df=workbook_list[node][[1]]
-  write_tsv(x = df,file = paste(path,output_folder,"/",acl,"-",node,".tsv",sep = ""))
+  output_file=paste(path,
+                    output_folder,
+                    "/",
+                    acl,
+                    "-",
+                    node,
+                    stri_replace_all_fixed(
+                      str = Sys.Date(),
+                      pattern = "-",
+                      replacement = ""),
+                    ".tsv",
+                    sep = "")
+  
+  write_tsv(x = df,file = output_file)
 }
 
 cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,output_folder,"\n\n",sep = "")) 
