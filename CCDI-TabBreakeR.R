@@ -184,7 +184,7 @@ for (node in nodes_present){
                     ".tsv",
                     sep = "")
   
-  write_tsv(x = df,file = output_file)
+  write_tsv(x = df,file = output_file, na="")
 }
 
 cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,output_folder,"\n\n",sep = "")) 
