@@ -121,6 +121,10 @@ github_rows=grep(pattern = "github", x = df_readme[,github_col])
 github_vers=basename(df_readme[github_rows,github_col])
 github_curr_ver=github_vers[length(github_vers)]
 
+
+df_study=suppressMessages(read.xlsx(xlsxFile = file_path,sheet = "study"))
+project_id=df_study$study_id[1]
+
 #create a list of all node pages with data
 for (node in dict_nodes){
   #read the sheet
@@ -137,6 +141,7 @@ for (node in dict_nodes){
   
   #Capture the version of the template in the data frames
   df$template_version=github_curr_ver
+  df$project_id=project_id
   
   #if there are at least one row in the resulting data frame, add it
   if (dim(df_empty_test)[1]>0){
@@ -166,7 +171,6 @@ if (!is.na(acl)){
 }else{
   acl="phsxxxxxx"
 }
-
 
 #for each tab, write out a file to the output directory
 for (node in nodes_present){
