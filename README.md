@@ -12,7 +12,7 @@ Rscript --vanilla CCDI-TabBreakeR.R -h
 ```
 Usage: CCDI-TabBreakeR.R [options]
 
-CCDI-TabBreakeR v1.0.0
+CCDI-TabBreakeR v1.1.0
 
 Options:
 	-f CHARACTER, --file=CHARACTER
