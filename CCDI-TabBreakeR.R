@@ -22,7 +22,7 @@
 ##################
 
 #List of needed packages
-list_of_packages=c("dplyr","tidyr","readr","stringi","janitor","openxlsx","optparse","tools")
+list_of_packages=c("dplyr","tidyr","readr","stringi","janitor","openxlsx","jsonlite","optparse","tools")
 
 #Based on the packages that are present, install ones that are required.
 new.packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
@@ -35,6 +35,7 @@ suppressMessages(library(tidyr,verbose = F))
 suppressMessages(library(stringi,verbose = F))
 suppressMessages(library(janitor,verbose = F))
 suppressMessages(library(openxlsx,verbose = F))
+suppressMessages(library(jsonlite,verbose = F))
 suppressMessages(library(optparse,verbose = F))
 suppressMessages(library(tools,verbose = F))
 
@@ -56,7 +57,7 @@ option_list = list(
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCCDI-TabBreakeR v1.0.0")
+opt_parser = OptionParser(option_list=option_list, description = "\nCCDI-TabBreakeR v1.1.0")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -84,17 +85,21 @@ file_name=stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),patter
 ext=tolower(stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][1]))
 path=paste(dirname(file_path),"/",sep = "")
 
+#Set up time stamp for all outputs
+time_now=Sys.time()
+time_now_fmt=format(time_now, "%Y%m%d%H%M%S")
+
+
 #Output folder name based on input file name and date/time stamped.
-output_folder=paste(file_name,
-                  "_TabBreak",
-                  stri_replace_all_fixed(
-                    str = Sys.Date(),
-                    pattern = "-",
-                    replacement = ""),
+output_folder=paste(
+                  "CCDI_TabBreak_",
+                  time_now_fmt,
                   sep="")
 
-dir.create(path = paste(path,output_folder,sep = ""), showWarnings = FALSE)
+output_folder_tsv= paste(output_folder,"/tsvs",sep = "")
 
+dir.create(path = paste(path,output_folder,sep = ""), showWarnings = FALSE)
+dir.create(path = paste(path,output_folder_tsv,sep = ""), showWarnings = FALSE)
 
 ##############
 #
@@ -125,6 +130,9 @@ github_curr_ver=github_vers[length(github_vers)]
 df_study=suppressMessages(read.xlsx(xlsxFile = file_path,sheet = "study"))
 project_id=df_study$study_id[1]
 
+
+keys=df_dict[grepl(pattern = TRUE, x = df_dict$Key),]$Property
+
 #create a list of all node pages with data
 for (node in dict_nodes){
   #read the sheet
@@ -139,9 +147,31 @@ for (node in dict_nodes){
   #remove empty rows and columns
   df_empty_test=remove_empty(df_empty_test,c("rows","cols"))
   
-  #Capture the version of the template in the data frames
-  df$template_version=github_curr_ver
-  df$project_id=project_id
+  #To ensure unique ids across multiple studies, we are pre-appending the study_id onto all key_ids and their linkages.
+  for (column in colnames(df)){
+    if (column %in% keys){
+      df$id=paste(project_id,df[[column]], sep = "::")
+    }else if (grepl(pattern = "\\.",x = column)){
+      if (!grepl(pattern = '\\.id', x = column)){
+        prev_node=unlist(stri_split_fixed(str = column, pattern = "."))[1]
+        node_id=paste(prev_node,".id", sep = "")
+        for (row_num in 1:dim(df)[1]){
+          if (!is.na(df[row_num,column])){
+            df[row_num,node_id]=paste(project_id,df[row_num,column], sep = "::")
+          }
+        }
+      }
+    }
+  }
+  
+  #remove the old linking properties [node].[node]_id, as that will cause issues in the data loader
+  for (column in colnames(df)){
+    if (grepl(pattern = "\\.",x = column)){
+      if (!grepl(pattern = '\\.id', x = column)){
+        df=df[!colnames(df) %in% column]
+      }
+    }
+  }
   
   #if there are at least one row in the resulting data frame, add it
   if (dim(df_empty_test)[1]>0){
@@ -164,31 +194,43 @@ nodes_present=names(workbook_list)
 ################
 
 #create new name for internal files
-acl=workbook_list["study"][[1]]["acl"][[1]][1]
-if (!is.na(acl)){
-  acl=gsub(pattern = "\\[\\'",replacement = "",x = acl)
-  acl=gsub(pattern = "\\'\\]",replacement = "",x = acl)
-}else{
-  acl="phsxxxxxx"
-}
+study_id=workbook_list["study"][[1]]["study_id"][[1]][1]
+
 
 #for each tab, write out a file to the output directory
 for (node in nodes_present){
   df=workbook_list[node][[1]]
   output_file=paste(path,
                     output_folder,
-                    "/",
-                    acl,
+                    "/tsvs/",
+                    study_id,
                     "-",
                     node,
-                    stri_replace_all_fixed(
-                      str = Sys.Date(),
-                      pattern = "-",
-                      replacement = ""),
+                    "_",
+                    time_now_fmt,
                     ".tsv",
                     sep = "")
   
   write_tsv(x = df,file = output_file, na="")
 }
+
+#Create output JSON file that contains run information
+
+json_file = paste(path,
+                  output_folder,
+                  '/',
+                  study_id,
+                  "_TabBreakeRLog",
+                  time_now_fmt,
+                  ".json",
+                  sep = "")
+
+json_meta_df=tibble(template_version=NA, job_datetime=NA, submission_input_file=NA)
+
+json_meta_df=json_meta_df%>%
+              mutate(template_version=github_curr_ver, job_datetime=time_now, submission_input_file=paste(file_name,ext,sep = "."))
+
+write_json(x = json_meta_df, path = json_file, pretty = TRUE)
+
 
 cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,output_folder,"\n\n",sep = "")) 
