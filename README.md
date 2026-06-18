@@ -1,3 +1,8 @@
+> [!WARNING]
+> This repository has been archived and is no longer maintained.  
+> The code is provided for historical reference and may contain unpatched or unknown vulnerabilities.  
+> It should not be used in production systems.  
+
 # ChildhoodCancerDataInitiative-TabBreakeR (ARCHIVED)
 This takes a CCDI Metadata template file as input and creates an output TSV file for each of the Metadata tabs.
 
